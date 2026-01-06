@@ -36,34 +36,34 @@ SocraticChat helps users think critically by asking probing questions rather tha
 
 ### Step 1: Clone the Repository
 
-```bash
+   ```bash
 git clone <your-repository-url>
-cd SocraticChat
-```
+   cd SocraticChat
+   ```
 
 ### Step 2: Backend Setup
-
-```bash
-cd backend
-python -m venv venv
+   
+   ```bash
+   cd backend
+   python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-```
+   pip install -r requirements.txt
+   python -m spacy download en_core_web_sm
+   ```
+   
+   Create a `.env` file in the `backend` directory:
 
-Create a `.env` file in the `backend` directory:
-
-```env
-OPENAI_API_KEY=your_api_key_here
-```
-
+   ```env
+   OPENAI_API_KEY=your_api_key_here
+   ```
+   
 ### Step 3: Frontend Setup
 
-```bash
-cd frontend
-npm install
-```
-
+   ```bash
+   cd frontend
+   npm install
+   ```
+   
 ### Step 4: Run the Application
 
 **Terminal 1 - Backend:**
@@ -74,10 +74,10 @@ uvicorn main:app --reload --port 8000
 ```
 
 **Terminal 2 - Frontend:**
-```bash
+   ```bash
 cd frontend
-npm run dev
-```
+   npm run dev
+   ```
 
 Open your browser and navigate to `http://localhost:5173`
 
@@ -107,7 +107,7 @@ Open your browser and navigate to `http://localhost:5173`
 ### Backend (Render/Heroku)
 
 **Render:**
-- Build command: `cd backend && pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python -m spacy download en_core_web_sm`
+- Build command: `cd backend && pip install --upgrade pip setuptools wheel && pip install --only-binary :all: spacy && pip install -r requirements.txt && python -m spacy download en_core_web_sm`
 - Start command: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
 - Add environment variable: `OPENAI_API_KEY=your_key`
 
