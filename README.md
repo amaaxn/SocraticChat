@@ -107,7 +107,7 @@ Open your browser and navigate to `http://localhost:5173`
 ### Backend (Render/Heroku)
 
 **Render:**
-- Build command: `cd backend && pip install -r requirements.txt && python -m spacy download en_core_web_sm`
+- Build command: `cd backend && pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python -m spacy download en_core_web_sm`
 - Start command: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
 - Add environment variable: `OPENAI_API_KEY=your_key`
 
