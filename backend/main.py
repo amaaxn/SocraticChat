@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import openai
+from openai import OpenAIError
 import os
 from dotenv import load_dotenv
 import logging
@@ -48,6 +49,13 @@ class ChatResponse(BaseModel):
 
 sessions = {}
 
+def get_system_message():
+    """Returns the system message for Socratic dialogue."""
+    return {
+        "role": "system",
+        "content": "You are a Socratic teacher engaging in thoughtful dialogue. Your goal is to help users think deeply by asking probing questions rather than providing direct answers. Guide them through their reasoning process, challenge assumptions gently, and encourage critical thinking. Keep responses concise and conversational."
+    }
+
 def preprocess_text(text: str) -> str:
     """
     Preprocess text using NLP: tokenization, lemmatization, and stop word removal.
@@ -69,16 +77,7 @@ def generate_socratic_response(user_message: str, conversation_history: List[dic
     Generate a Socratic-style response using GPT-4.
     Handles API errors including rate limits and authentication issues.
     """
-    messages = [
-        {
-            "role": "system",
-            "content": """You are a Socratic teacher engaging in thoughtful dialogue. 
-            Your goal is to help users think deeply by asking probing questions rather than 
-            providing direct answers. Guide them through their reasoning process, challenge 
-            assumptions gently, and encourage critical thinking. Keep responses concise and 
-            conversational."""
-        }
-    ]
+    messages = [get_system_message()]
     
     for msg in conversation_history[-6:]:
         messages.append(msg)
@@ -106,11 +105,17 @@ def generate_socratic_response(user_message: str, conversation_history: List[dic
             status_code=401,
             detail="API authentication failed. Please check your API key."
         )
-    except openai.APIError as e:
+    except OpenAIError as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"API error occurred: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred. Please try again."
         )
 
 @app.get("/")
