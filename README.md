@@ -1,113 +1,105 @@
-# SocraticChat
+# Project Socrates - SocraticChat
 
-An AI-powered conversational application that uses the Socratic method to engage users in deep, thoughtful dialogue. Built with modern web technologies to create an intuitive and engaging learning experience.
+An AI-powered application that integrates with GPT-4 to simulate Socratic dialogue. The application uses NLP preprocessing and provides a clean, intuitive web interface for engaging in thoughtful conversations.
 
-## What is SocraticChat?
+## Overview
 
-SocraticChat is designed to help you think critically by asking probing questions rather than providing direct answers. The application leverages OpenAI's GPT-4 to simulate a Socratic teacher, guiding conversations that encourage self-discovery and deeper understanding.
+SocraticChat helps users think critically by asking probing questions rather than providing direct answers. Built with Python, FastAPI, and React, it demonstrates integration with advanced LLM APIs and modern web development practices.
 
-## Key Features
+## Core Features
 
-- **Intelligent Dialogue**: Powered by GPT-4 for natural, context-aware conversations
-- **NLP Processing**: Uses spaCy for text preprocessing, including tokenization and lemmatization
-- **Session Management**: Maintains conversation context across multiple messages
-- **Error Resilience**: Comprehensive error handling for API rate limits and connection issues
-- **Modern UI**: Clean, responsive interface built with React and Vite
-- **Production Ready**: Configured for easy deployment on popular hosting platforms
+- **LLM Integration**: Powered by OpenAI's GPT-4 API
+- **NLP Preprocessing**: Tokenization and lemmatization using spaCy
+- **Error Handling**: Comprehensive handling for API rate limits and errors
+- **Modern UI**: Clean, responsive React frontend
+- **Session Management**: Maintains conversation context
 
 ## Tech Stack
 
 **Backend:**
-- Python 3.11
-- FastAPI (async web framework)
+- Python 3.8+
+- FastAPI
 - OpenAI API (GPT-4)
 - spaCy (NLP processing)
 
 **Frontend:**
 - React 18
-- Vite (build tool)
-- Modern CSS with gradient designs
+- Vite
 
-## Getting Started
+## Installation
 
 ### Prerequisites
 
-Before you begin, ensure you have:
-- Python 3.8 or higher installed
-- Node.js 16 or higher installed
-- An OpenAI API key ([get one here](https://platform.openai.com/api-keys))
+- Python 3.8 or higher
+- Node.js 16 or higher
+- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
 
-### Installation Steps
+### Step 1: Clone the Repository
 
-1. **Clone this repository**
-   ```bash
-   git clone https://github.com/amaaxn/SocraticChat.git
-   cd SocraticChat
-   ```
+```bash
+git clone <your-repository-url>
+cd SocraticChat
+```
 
-2. **Backend Setup**
-   
-   Navigate to the backend directory and set up the Python environment:
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   python -m spacy download en_core_web_sm
-   ```
-   
-   Create a `.env` file in the `backend` directory:
-   ```env
-   OPENAI_API_KEY=your_api_key_here
-   ```
-   
-   Start the backend server:
-   ```bash
-   uvicorn main:app --reload --port 8000
-   ```
+### Step 2: Backend Setup
 
-3. **Frontend Setup**
-   
-   Open a new terminal and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   npm install
-   ```
-   
-   (Optional) Create a `.env` file if your backend is running on a different URL:
-   ```env
-   VITE_API_URL=http://localhost:8000
-   ```
-   
-   Start the development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
 
-4. **Start Chatting!**
-   
-   Open your browser and go to `http://localhost:5173`. Type your first message to begin a Socratic dialogue.
+Create a `.env` file in the `backend` directory:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+```
+
+### Step 3: Frontend Setup
+
+```bash
+cd frontend
+npm install
+```
+
+### Step 4: Run the Application
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+source venv/bin/activate
+uvicorn main:app --reload --port 8000
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+Open your browser and navigate to `http://localhost:5173`
 
 ## How It Works
 
-1. **User Input**: You type a question or statement
-2. **NLP Processing**: The backend preprocesses your text using spaCy (tokenization, lemmatization)
-3. **AI Response**: GPT-4 generates a Socratic-style response that asks thoughtful questions
-4. **Context Maintenance**: The conversation history is maintained for coherent dialogue
+1. **User Input**: User types a message in the web interface
+2. **NLP Preprocessing**: Backend processes text using spaCy (tokenization, lemmatization, stop word removal)
+3. **AI Response**: GPT-4 generates a Socratic-style response with thoughtful questions
+4. **Context Maintenance**: Conversation history is maintained for coherent dialogue
 
 ## API Endpoints
 
 - `POST /chat` - Send a message and receive a Socratic response
 - `GET /health` - Check API health status
-- `GET /sessions/{session_id}` - Retrieve conversation history
-- `DELETE /sessions/{session_id}` - Clear conversation history
+- `GET /` - API information
 
 ## Deployment
 
 ### Frontend (Vercel)
 
 1. Connect your GitHub repository to Vercel
-2. Set the root directory to `frontend`
+2. Set root directory to `frontend`
 3. Build command: `npm install && npm run build`
 4. Output directory: `dist`
 5. Add environment variable: `VITE_API_URL=your_backend_url`
@@ -129,36 +121,34 @@ Before you begin, ensure you have:
 ```
 SocraticChat/
 ├── backend/
-│   ├── main.py              # FastAPI application and API endpoints
+│   ├── main.py              # FastAPI application
 │   ├── requirements.txt     # Python dependencies
-│   ├── .env.example        # Environment variable template
 │   ├── Procfile            # Heroku deployment config
-│   └── runtime.txt         # Python version for Heroku
+│   └── runtime.txt         # Python version
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx         # Main React component
 │   │   ├── App.css         # Application styles
-│   │   ├── main.jsx        # React entry point
-│   │   └── index.css       # Global styles
-│   ├── index.html
+│   │   └── main.jsx        # React entry point
 │   ├── package.json
-│   ├── vite.config.js
-│   └── .env.example
-├── README.md
-└── .gitignore
+│   └── vite.config.js
+└── README.md
 ```
 
-## Important Notes
+## Error Handling
 
-- Always start the backend server before the frontend
-- The spaCy model (`en_core_web_sm`) must be downloaded before running the backend
+The application handles:
+- **Rate Limits**: Returns 429 status with user-friendly message
+- **Authentication Errors**: Returns 401 status for invalid API keys
+- **API Errors**: Catches and logs OpenAI API errors
+- **Network Issues**: Graceful error messages in the UI
+
+## Notes
+
 - Session data is stored in memory (not persistent across server restarts)
-- Check browser console for debugging information if issues arise
+- The spaCy model (`en_core_web_sm`) must be downloaded before running
+- Always start the backend server before the frontend
 
 ## License
 
-This project is open source and available for educational purposes.
-
----
-
-Built with ❤️ for thoughtful conversations
+This project is for educational purposes.

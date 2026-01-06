@@ -5,7 +5,6 @@ from typing import List, Optional
 import openai
 import os
 from dotenv import load_dotenv
-import spacy
 import logging
 from datetime import datetime
 
@@ -24,17 +23,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-openai_client = None
 api_key = os.getenv("OPENAI_API_KEY")
-if api_key:
-    openai_client = openai.OpenAI(api_key=api_key)
-else:
-    logger.warning("OPENAI_API_KEY not found in environment variables")
+if not api_key:
+    logger.error("OPENAI_API_KEY environment variable is required")
+    raise ValueError("OPENAI_API_KEY environment variable is required. Please set it in your .env file or environment variables.")
+
+openai_client = openai.OpenAI(api_key=api_key)
 
 try:
+    import spacy
     nlp = spacy.load("en_core_web_sm")
-except OSError:
-    logger.warning("spaCy model 'en_core_web_sm' not found. Run: python -m spacy download en_core_web_sm")
+except (ImportError, OSError) as e:
+    logger.warning(f"spaCy not available: {e}. Text preprocessing will be limited.")
     nlp = None
 
 class ChatMessage(BaseModel):
@@ -49,8 +49,12 @@ class ChatResponse(BaseModel):
 sessions = {}
 
 def preprocess_text(text: str) -> str:
+    """
+    Preprocess text using NLP: tokenization, lemmatization, and stop word removal.
+    Falls back to simple lowercase if spaCy is not available.
+    """
     if nlp is None:
-        return text
+        return text.lower().strip()
     
     doc = nlp(text)
     processed_tokens = [
@@ -61,36 +65,33 @@ def preprocess_text(text: str) -> str:
     return " ".join(processed_tokens)
 
 def generate_socratic_response(user_message: str, conversation_history: List[dict]) -> str:
+    """
+    Generate a Socratic-style response using GPT-4.
+    Handles API errors including rate limits and authentication issues.
+    """
+    messages = [
+        {
+            "role": "system",
+            "content": """You are a Socratic teacher engaging in thoughtful dialogue. 
+            Your goal is to help users think deeply by asking probing questions rather than 
+            providing direct answers. Guide them through their reasoning process, challenge 
+            assumptions gently, and encourage critical thinking. Keep responses concise and 
+            conversational."""
+        }
+    ]
+    
+    for msg in conversation_history[-6:]:
+        messages.append(msg)
+    
+    messages.append({"role": "user", "content": user_message})
+    
     try:
-        messages = [
-            {
-                "role": "system",
-                "content": """You are a Socratic teacher engaging in thoughtful dialogue. 
-                Your goal is to help users think deeply by asking probing questions rather than 
-                providing direct answers. Guide them through their reasoning process, challenge 
-                assumptions gently, and encourage critical thinking. Keep responses concise and 
-                conversational."""
-            }
-        ]
-        
-        for msg in conversation_history[-6:]:
-            messages.append(msg)
-        
-        messages.append({"role": "user", "content": user_message})
-        
-        if not openai_client:
-            raise HTTPException(
-                status_code=500,
-                detail="OpenAI API key not configured"
-            )
-        
         response = openai_client.chat.completions.create(
             model="gpt-4",
             messages=messages,
             temperature=0.7,
             max_tokens=300
         )
-        
         return response.choices[0].message.content.strip()
     
     except openai.RateLimitError:
@@ -111,12 +112,6 @@ def generate_socratic_response(user_message: str, conversation_history: List[dic
             status_code=500,
             detail=f"API error occurred: {str(e)}"
         )
-    except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred. Please try again."
-        )
 
 @app.get("/")
 def root():
@@ -128,23 +123,26 @@ def health_check():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(chat_message: ChatMessage):
+    """
+    Main chat endpoint that processes user messages and returns Socratic responses.
+    Applies NLP preprocessing and maintains conversation context.
+    """
+    user_input = chat_message.message.strip()
+    
+    if not user_input:
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    
+    session_id = chat_message.session_id or f"session_{datetime.now().timestamp()}"
+    if session_id not in sessions:
+        sessions[session_id] = []
+    
+    processed_input = preprocess_text(user_input)
+    logger.info(f"Processed input: {processed_input}")
+    
+    sessions[session_id].append({"role": "user", "content": user_input})
+    
     try:
-        user_input = chat_message.message.strip()
-        
-        if not user_input:
-            raise HTTPException(status_code=400, detail="Message cannot be empty")
-        
-        session_id = chat_message.session_id or f"session_{datetime.now().timestamp()}"
-        if session_id not in sessions:
-            sessions[session_id] = []
-        
-        processed_input = preprocess_text(user_input)
-        logger.info(f"Processed input: {processed_input}")
-        
-        sessions[session_id].append({"role": "user", "content": user_input})
-        
         response_text = generate_socratic_response(user_input, sessions[session_id])
-        
         sessions[session_id].append({"role": "assistant", "content": response_text})
         
         return ChatResponse(
@@ -152,7 +150,6 @@ async def chat(chat_message: ChatMessage):
             session_id=session_id,
             processed_input=processed_input
         )
-    
     except HTTPException:
         raise
     except Exception as e:
@@ -161,19 +158,6 @@ async def chat(chat_message: ChatMessage):
             status_code=500,
             detail=f"Error processing chat: {str(e)}"
         )
-
-@app.get("/sessions/{session_id}")
-def get_session_history(session_id: str):
-    if session_id not in sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
-    return {"session_id": session_id, "history": sessions[session_id]}
-
-@app.delete("/sessions/{session_id}")
-def clear_session(session_id: str):
-    if session_id in sessions:
-        del sessions[session_id]
-        return {"message": "Session cleared", "session_id": session_id}
-    raise HTTPException(status_code=404, detail="Session not found")
 
 if __name__ == "__main__":
     import uvicorn
