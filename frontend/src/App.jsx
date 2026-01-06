@@ -27,7 +27,6 @@ function App() {
     setInput('')
     setError(null)
 
-    // Add user message to UI immediately
     const newUserMessage = { role: 'user', content: userMessage }
     setMessages(prev => [...prev, newUserMessage])
     setLoading(true)
@@ -51,16 +50,13 @@ function App() {
 
       const data = await response.json()
       
-      // Set session ID if this is the first message
       if (!sessionId) {
         setSessionId(data.session_id)
       }
 
-      // Add assistant response
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }])
     } catch (err) {
       setError(err.message)
-      // Remove the user message if there was an error
       setMessages(prev => prev.slice(0, -1))
     } finally {
       setLoading(false)

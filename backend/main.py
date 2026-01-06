@@ -9,26 +9,21 @@ import spacy
 import logging
 from datetime import datetime
 
-# Load environment variables
 load_dotenv()
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
 app = FastAPI(title="SocraticChat API", version="1.0.0")
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend URL
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize OpenAI client
 openai_client = None
 api_key = os.getenv("OPENAI_API_KEY")
 if api_key:
@@ -36,14 +31,12 @@ if api_key:
 else:
     logger.warning("OPENAI_API_KEY not found in environment variables")
 
-# Load spaCy model for NLP preprocessing
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
     logger.warning("spaCy model 'en_core_web_sm' not found. Run: python -m spacy download en_core_web_sm")
     nlp = None
 
-# Request/Response models
 class ChatMessage(BaseModel):
     message: str
     session_id: Optional[str] = None
@@ -53,18 +46,13 @@ class ChatResponse(BaseModel):
     session_id: str
     processed_input: Optional[str] = None
 
-# In-memory session storage (use a database in production)
 sessions = {}
 
 def preprocess_text(text: str) -> str:
-    """
-    Apply basic NLP preprocessing: tokenization and lemmatization.
-    """
     if nlp is None:
         return text
     
     doc = nlp(text)
-    # Extract lemmatized tokens, filtering out stop words and punctuation
     processed_tokens = [
         token.lemma_.lower() 
         for token in doc 
@@ -73,11 +61,7 @@ def preprocess_text(text: str) -> str:
     return " ".join(processed_tokens)
 
 def generate_socratic_response(user_message: str, conversation_history: List[dict]) -> str:
-    """
-    Generate a Socratic dialogue response using OpenAI GPT-4.
-    """
     try:
-        # Build conversation context
         messages = [
             {
                 "role": "system",
@@ -89,14 +73,11 @@ def generate_socratic_response(user_message: str, conversation_history: List[dic
             }
         ]
         
-        # Add conversation history
-        for msg in conversation_history[-6:]:  # Keep last 6 messages for context
+        for msg in conversation_history[-6:]:
             messages.append(msg)
         
-        # Add current user message
         messages.append({"role": "user", "content": user_message})
         
-        # Call OpenAI API
         if not openai_client:
             raise HTTPException(
                 status_code=500,
@@ -147,31 +128,23 @@ def health_check():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(chat_message: ChatMessage):
-    """
-    Main chat endpoint that processes user messages and generates Socratic responses.
-    """
     try:
         user_input = chat_message.message.strip()
         
         if not user_input:
             raise HTTPException(status_code=400, detail="Message cannot be empty")
         
-        # Get or create session
         session_id = chat_message.session_id or f"session_{datetime.now().timestamp()}"
         if session_id not in sessions:
             sessions[session_id] = []
         
-        # Preprocess input
         processed_input = preprocess_text(user_input)
         logger.info(f"Processed input: {processed_input}")
         
-        # Add user message to history
         sessions[session_id].append({"role": "user", "content": user_input})
         
-        # Generate response
         response_text = generate_socratic_response(user_input, sessions[session_id])
         
-        # Add assistant response to history
         sessions[session_id].append({"role": "assistant", "content": response_text})
         
         return ChatResponse(
@@ -191,18 +164,12 @@ async def chat(chat_message: ChatMessage):
 
 @app.get("/sessions/{session_id}")
 def get_session_history(session_id: str):
-    """
-    Retrieve conversation history for a session.
-    """
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"session_id": session_id, "history": sessions[session_id]}
 
 @app.delete("/sessions/{session_id}")
 def clear_session(session_id: str):
-    """
-    Clear conversation history for a session.
-    """
     if session_id in sessions:
         del sessions[session_id]
         return {"message": "Session cleared", "session_id": session_id}
