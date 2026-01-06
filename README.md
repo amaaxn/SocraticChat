@@ -1,4 +1,4 @@
-# Project Socrates - SocraticChat
+# SocraticChat
 
 An AI-powered application that integrates with GPT-4 to simulate Socratic dialogue. The application uses NLP preprocessing and provides a clean, intuitive web interface for engaging in thoughtful conversations.
 
