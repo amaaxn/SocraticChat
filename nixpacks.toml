@@ -4,11 +4,10 @@ nixPkgs = ["python312", "python312Packages.pip"]
 [phases.install]
 cmds = [
   "pip install --upgrade pip setuptools wheel",
-  "if [ -d backend ]; then cd backend; fi",
-  "pip install -r requirements-base.txt",
+  "pip install -r backend/requirements-base.txt",
   "pip install --prefer-binary spacy",
   "python -m spacy download en_core_web_sm"
 ]
 
 [start]
-cmd = "if [ -d backend ]; then cd backend; fi && uvicorn main:app --host 0.0.0.0 --port $PORT"
+cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
