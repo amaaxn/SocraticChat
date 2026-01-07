@@ -3,7 +3,6 @@ nixPkgs = ["python312", "python312Packages.pip"]
 
 [phases.install]
 cmds = [
-  "pip install --upgrade pip setuptools wheel",
   "pip install -r backend/requirements-base.txt",
   "pip install --prefer-binary spacy",
   "python -m spacy download en_core_web_sm"
