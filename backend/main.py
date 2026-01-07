@@ -60,7 +60,11 @@ class UserInput(BaseModel):
 
 @app.get("/")
 async def root():
-   return {"message": "Hello, Socratic AI!"}
+   return {"message": "Hello, Socratic AI!", "status": "running"}
+
+@app.get("/health")
+async def health():
+   return {"status": "healthy"}
 
 
 @app.post("/chat")
