@@ -32,7 +32,9 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/chat`, {
+      const url = `${API_URL.replace(/\/$/, '')}/chat`
+      console.log('Sending request to:', url)
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
