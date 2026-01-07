@@ -39,7 +39,7 @@ function App() {
         },
         body: JSON.stringify({
           message: userMessage,
-          session_id: sessionId,
+          sessionId: sessionId,
         }),
       })
 
@@ -50,8 +50,8 @@ function App() {
 
       const data = await response.json()
       
-      if (!sessionId) {
-        setSessionId(data.session_id)
+      if (!sessionId && data.sessionId) {
+        setSessionId(data.sessionId)
       }
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }])
@@ -67,11 +67,7 @@ function App() {
     setMessages([])
     setSessionId(null)
     setError(null)
-    if (sessionId) {
-      fetch(`${API_URL}/sessions/${sessionId}`, {
-        method: 'DELETE',
-      }).catch(console.error)
-    }
+    // Session cleanup handled by backend
   }
 
   return (

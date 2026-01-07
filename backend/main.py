@@ -44,7 +44,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://socratic-ai-self.vercel.app"], 
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,7 +71,7 @@ async def chat(input: UserInput):
            messages=histories[input.sessionId]
        )
        histories[input.sessionId].append(output.choices[0].message)
-       return {"response" : output.choices[0].message.content}
+       return {"response" : output.choices[0].message.content, "sessionId": input.sessionId}
    except OpenAIError as e:
        print(f"OpenAI API Error : {e}")
        return {"error" : "There seems to be an error with the OpenAI API. Please try again later"}
