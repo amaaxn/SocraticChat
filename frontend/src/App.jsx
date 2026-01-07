@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const getApiUrl = () => {
+  const url = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  // Ensure URL has protocol
+  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`
+  }
+  return url
+}
+
+const API_URL = getApiUrl()
 
 function App() {
   const [messages, setMessages] = useState([])
