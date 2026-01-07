@@ -3,7 +3,6 @@ import './App.css'
 
 const getApiUrl = () => {
   const url = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-  // Ensure URL has protocol
   if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
     return `https://${url}`
   }
@@ -42,7 +41,6 @@ function App() {
 
     try {
       const url = `${API_URL.replace(/\/$/, '')}/chat`
-      console.log('Sending request to:', url)
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -93,7 +91,6 @@ function App() {
     setMessages([])
     setSessionId(null)
     setError(null)
-    // Session cleanup handled by backend
   }
 
   return (
