@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pip install -r backend/requirements-base.txt && pip install --prefer-binary spacy && python -m spacy download en_core_web_sm"
+    "buildCommand": "pip install -r requirements-base.txt && pip install --prefer-binary spacy && python -m spacy download en_core_web_sm"
   },
   "deploy": {
-    "startCommand": "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
