@@ -3,9 +3,11 @@ from dotenv import load_dotenv
 from openai import OpenAI, OpenAIError
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import Optional
 import spacy
 from fastapi.middleware.cors import CORSMiddleware
 from collections import defaultdict
+from datetime import datetime
 
 
 
@@ -53,7 +55,7 @@ app.add_middleware(
 
 class UserInput(BaseModel):
    message: str
-   sessionId: str
+   sessionId: Optional[str] = None
 
 
 @app.get("/")
@@ -64,14 +66,18 @@ async def root():
 @app.post("/chat")
 async def chat(input: UserInput):
    try:
+       session_id = input.sessionId or f"session_{datetime.now().timestamp()}"
        processedText = preprocess(input.message)
-       histories[input.sessionId].append({"role": "user", "content" : processedText})
+       histories[session_id].append({"role": "user", "content" : processedText})
        output = client.chat.completions.create(
            model="gpt-4o-mini",
-           messages=histories[input.sessionId]
+           messages=histories[session_id]
        )
-       histories[input.sessionId].append(output.choices[0].message)
-       return {"response" : output.choices[0].message.content, "sessionId": input.sessionId}
+       histories[session_id].append(output.choices[0].message)
+       return {"response" : output.choices[0].message.content, "sessionId": session_id}
    except OpenAIError as e:
        print(f"OpenAI API Error : {e}")
        return {"error" : "There seems to be an error with the OpenAI API. Please try again later"}
+   except Exception as e:
+       print(f"Error: {e}")
+       return {"error" : f"An error occurred: {str(e)}"}

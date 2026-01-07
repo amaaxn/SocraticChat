@@ -39,24 +39,39 @@ function App() {
         },
         body: JSON.stringify({
           message: userMessage,
-          sessionId: sessionId,
+          sessionId: sessionId || `session_${Date.now()}`,
         }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to get response')
+        const text = await response.text()
+        let errorData
+        try {
+          errorData = JSON.parse(text)
+        } catch {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        }
+        throw new Error(errorData.detail || errorData.error || 'Failed to get response')
       }
 
-      const data = await response.json()
+      const text = await response.text()
+      if (!text) {
+        throw new Error('Empty response from server')
+      }
+
+      const data = JSON.parse(text)
       
       if (!sessionId && data.sessionId) {
         setSessionId(data.sessionId)
       }
 
+      if (data.error) {
+        throw new Error(data.error)
+      }
+
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }])
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Failed to connect to server. Please check your backend URL.')
       setMessages(prev => prev.slice(0, -1))
     } finally {
       setLoading(false)
