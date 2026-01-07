@@ -12,7 +12,10 @@ from collections import defaultdict
 
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY environment variable is required")
+
 def populateRole():
    return [{"role": "system", "content" : "Use the Socratic method in order to respond with thoughtful questions that challenge assumptions and encourage deeper thinking. Answer in one line and at most a paragraph, abd respond like a patient and insightful tutor."}]
 
@@ -35,7 +38,7 @@ def preprocess(text):
 
 
 
-client = OpenAI()
+client = OpenAI(api_key=api_key)
 
 
 app = FastAPI()
