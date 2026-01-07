@@ -1,7 +1,6 @@
 import os
-import openai
 from dotenv import load_dotenv
-from openai import *
+from openai import OpenAI, OpenAIError
 from fastapi import FastAPI
 from pydantic import BaseModel
 import spacy
